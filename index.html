@@ -1,7 +1,164 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>測試工具</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin: 50px; }
+        textarea { width: 80%; height: 100px; font-size: 16px; }
+        select, button { font-size: 18px; margin: 10px; padding: 5px; }
+        
+        /* Tab 選單樣式 */
+        .tab-container { width: 100%; margin-bottom: 20px; }
+        .tabs { list-style: none; padding: 0; display: flex; justify-content: center; border-bottom: 2px solid #ccc; }
+        .tabs li { padding: 10px 20px; cursor: pointer; border: 1px solid #ccc; border-bottom: none; background: #f0f0f0; }
+        .tabs li.active { background: #fff; font-weight: bold; border-top: 3px solid #007BFF; }
+        
+        /* Tab 內容樣式 */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
 <body>
-<h1>Hello World</h1>
-<p>I'm hosted with GitHub Pages.</p>
+
+    <!-- Tab 選單 -->
+    <div class="tab-container">
+	<h1>測試工具</h2>
+        <ul class="tabs">
+            <li class="active" onclick="switchTab(0)">HEX/DEC ⇄ ASCII 轉換</li>
+            <li onclick="switchTab(1)">DEC ⇄ HEX 進制轉換</li>
+            <li onclick="switchTab(2)">預留頁面</li>
+
+        </ul>
+    </div>
+
+    <!-- Tab 內容區 -->
+    <div id="tab-0" class="tab-content active">
+        <h2>HEX/DEC ⇄ ASCII 轉換</h2>
+	<span>轉換選項：</span>
+        <select id="mode1">
+            <option value="hexToAscii">HEX → ASCII</option>
+            <option value="decToAscii">DEC → ASCII</option>
+            <option value="asciiToHex">ASCII → HEX</option>
+            <option value="asciiToDec">ASCII → DEC</option>
+        </select>
+        <br>
+        <textarea id="inputText" placeholder="輸入數值 (當輸入為DEC時請用空格或逗號分隔)"></textarea>
+        <br>
+        <button onclick="convert1()">轉換</button>
+        <br>
+        <textarea id="outputText" placeholder="轉換結果" readonly></textarea>
+    </div>
+
+    <div id="tab-1" class="tab-content">
+        <h2>DEC ⇄ HEX 進制轉換</h2>
+	<span>轉換選項：</span>
+	<select id="mode2">
+            <option value="decToHex">10 → 16</option>
+            <option value="hexToDec">16 → 10</option>
+        </select>
+	<br>
+	<textarea id="inputNumbers" placeholder="輸入數值 (用空格或逗號分隔)"></textarea>
+        <br>
+        <button onclick="convert2()">轉換</button>
+        <br>
+        <textarea id="outputNumbers" placeholder="轉換結果" readonly></textarea>
+    </div>
+
+    <script>
+        // 切換 Tab 功能
+        function switchTab(index) {
+            let tabs = document.querySelectorAll(".tabs li");
+            let contents = document.querySelectorAll(".tab-content");
+
+            // 移除所有 Tab 的 active 狀態
+            tabs.forEach(tab => tab.classList.remove("active"));
+            contents.forEach(content => content.classList.remove("active"));
+
+            // 讓選中的 Tab 變成 active
+            tabs[index].classList.add("active");
+            contents[index].classList.add("active");
+        }
+
+        function hexToAscii(hex) {
+            try {
+                return hex.match(/.{1,2}/g).map(byte => String.fromCharCode(parseInt(byte, 16))).join('');
+            } catch {
+                return "錯誤: 無效 HEX";
+            }
+        }
+
+	function decToAscii(dec) {
+	    let output = "";
+	    let nums = dec.split(/[\s,]+/); // 允許空格或逗號分隔
+	    for (let num of nums) {
+	        output += String.fromCharCode(parseInt(num.trim(), 10));
+	    }
+	    return output;
+	}
+	
+
+        function asciiToHex(str) {
+            return Array.from(str).map(char => char.charCodeAt(0).toString(16)).join(' ');
+        }
+
+        function asciiToDec(str) {
+            return Array.from(str).map(char => char.charCodeAt(0).toString(10)).join(' ');
+        }
+
+        function convert1() {
+            const mode = document.getElementById("mode1").value;
+            const inputText = document.getElementById("inputText").value.trim();
+            let output = "";
+
+            if (mode === "hexToAscii") {
+                output = hexToAscii(inputText.replace(/[\s,]+/g, ''));
+            } else if (mode === "decToAscii") {
+                output = decToAscii(inputText);
+            } else if (mode === "asciiToHex") {
+                output = asciiToHex(inputText);
+            } else {
+                output = asciiToDec(inputText);
+            }
+
+            document.getElementById("outputText").value = output;
+        }
+	function decToHex(num) {
+	    return parseInt(num, 10).toString(16).toUpperCase();
+	}
+
+        function hexToDec(num) {
+            return parseInt(num, 16).toString(10);
+        }
+
+        function convert2() {
+            const mode = document.getElementById("mode2").value;
+            const inputNumbers = document.getElementById("inputNumbers").value.trim();
+            let output = "";
+
+            // 解析輸入，支援空格與逗號分隔
+            let numbers = inputNumbers.split(/[\s,]+/).filter(n => n);
+
+            try {
+                if (mode === "decToHex") {
+                    output = numbers.map(num => {
+                        if (!/^\d+$/.test(num)) throw new Error("無效數值: " + num);
+                        return decToHex(num);
+                    }).join(" ");
+                } else {
+                    output = numbers.map(num => {
+                        if (!/^[0-9A-Fa-f]+$/.test(num)) throw new Error("無效數值: " + num);
+                        return hexToDec(num);
+                    }).join(" ");
+                }
+            } catch (error) {
+                output = error.message;
+            }
+
+            document.getElementById("outputNumbers").value = output;
+        }
+    </script>
+
 </body>
 </html>
